@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CryptoKey Research Tool{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="{% url 'home' %}" class="nav-brand">
+    <span class="brand-icon">⬡</span>
+    <span class="brand-text">CryptoKey<span class="brand-accent">Research</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Dashboard</a></li>
+    <li><a href="{% url 'analyze' %}" class="nav-link {% if 'analyze' in request.resolver_match.url_name %}active{% endif %}">Analyzer</a></li>
+    <li><a href="{% url 'compare' %}" class="nav-link {% if 'compare' in request.resolver_match.url_name %}active{% endif %}">Comparator</a></li>
+    <li><a href="{% url 'chat' %}" class="nav-link {% if 'chat' in request.resolver_match.url_name %}active{% endif %}">AI Chat</a></li>
+    <li><a href="/admin/" class="nav-link nav-admin">Admin</a></li>
+    {% if user.is_authenticated %}
+      <li><a href="{% url 'logout' %}" class="nav-link nav-logout">Logout</a></li>
+      <li><span class="nav-link nav-user">{{ user.username }}</span></li>
+    {% else %}
+      <li><a href="{% url 'login' %}" class="nav-link">Login</a></li>
+      <li><a href="{% url 'register' %}" class="nav-link nav-user">Register</a></li>
+    {% endif %}
+  </ul>
+</nav>
+
+<main class="main-content">
+  {% if messages %}
+    <div class="flash-messages">
+      {% for message in messages %}
+        <div class="flash flash-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <span class="mono">CryptoKey Research Tool</span>
+  <span class="footer-sep">//</span>
+  <span>Methods for evaluating cryptographic key generators &amp; AI algorithms</span>
+</footer>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

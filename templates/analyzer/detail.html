@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Analysis #{{ result.pk }} – CryptoKey Research{% endblock %}
+
+{% block content %}
+<div class="page-header flex items-center gap-3" style="flex-wrap:wrap;">
+  <a href="{% url 'analyze' %}" class="btn btn-secondary btn-sm">← Back</a>
+  <h1 class="page-title" style="margin:0;">Analysis Report #{{ result.pk }}</h1>
+  <span class="badge badge-{% if result.strength_label == 'Strong' %}strong{% elif result.strength_label == 'Moderate' %}moderate{% elif result.strength_label == 'Weak' %}weak{% else %}very-weak{% endif %}">
+    {{ result.strength_label }}
+  </span>
+</div>
+
+<div class="grid-2" style="align-items:start;">
+  <div class="card">
+    <div class="card-header"><span class="card-icon">📊</span><span class="card-title">Metrics</span></div>
+
+    <div class="mb-2">
+      <div class="flex justify-between items-center mb-1">
+        <span class="text-sm text-muted">Strength Score</span>
+        <span class="font-mono font-bold text-accent">{{ result.strength_score }}/100</span>
+      </div>
+      <div class="strength-bar-wrap">
+        <div class="strength-bar" style="width: {{ result.strength_score }}%"></div>
+      </div>
+    </div>
+
+    <div class="metric-row"><span class="metric-label">Algorithm</span><span class="metric-value"><span class="badge badge-info">{{ result.algorithm }}</span></span></div>
+    <div class="metric-row"><span class="metric-label">Key Length</span><span class="metric-value font-mono">{{ result.key_length }} bits</span></div>
+    <div class="metric-row"><span class="metric-label">Shannon Entropy</span><span class="metric-value font-mono">{{ result.entropy_score }} bits/char</span></div>
+    <div class="metric-row"><span class="metric-label">Patterns Found</span><span class="metric-value font-mono {% if result.patterns_found %}text-red{% else %}text-green{% endif %}">{{ result.patterns_found|length }}</span></div>
+    <div class="metric-row"><span class="metric-label">Analyzed</span><span class="metric-value font-mono text-sm text-muted">{{ result.created_at|date:"Y-m-d H:i:s" }}</span></div>
+  </div>
+
+  <div>
+    {% if result.patterns_found %}
+    <div class="card mb-2">
+      <div class="card-header"><span class="card-icon">⚠️</span><span class="card-title">Patterns Detected</span></div>
+      {% for p in result.patterns_found %}
+        <div class="alert alert-error" style="margin-bottom:6px;">{{ p }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">💡</span><span class="card-title">Recommendations</span></div>
+      {% for rec in result.recommendations %}
+        <div class="metric-row"><span class="text-sm">{{ forloop.counter }}. {{ rec }}</span></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-header"><span class="card-icon">🔑</span><span class="card-title">Key Input (first 200 chars)</span></div>
+  <pre class="font-mono text-sm text-muted" style="white-space:pre-wrap;word-break:break-all;background:var(--bg3);padding:1rem;border-radius:var(--radius);">{{ result.key_input|slice:":200" }}{% if result.key_input|length > 200 %}...{% endif %}</pre>
+</div>
+{% endblock %}

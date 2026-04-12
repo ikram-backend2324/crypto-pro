@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block title %}Algorithm Comparator – CryptoKey Research{% endblock %}
+
+{% block extra_css %}
+<style>
+  .compare-header { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .algo-chip { background: var(--bg3); border: 1px solid var(--border); border-radius: 99px; padding: 4px 14px; font-family: var(--mono); font-size: 0.85rem; font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">📊 Algorithm Comparator</h1>
+  <p class="page-subtitle">Compare cryptographic algorithms across security, speed, and memory efficiency</p>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header"><span class="card-icon">⚙️</span><span class="card-title">Select Algorithms</span></div>
+  {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="checkbox-grid mb-2">
+      {% for algo in all_algorithms %}
+      <label class="checkbox-card">
+        <input type="checkbox" name="algorithms" value="{{ algo }}"
+          {% if algo in selected %}checked{% endif %}>
+        <div class="checkbox-card-name">{{ algo }}</div>
+        {% if algorithm_data %}
+        <div class="checkbox-card-sub">{{ algorithm_data|dictsort:algo }}
+          {% with d=algorithm_data|dictsort:algo %}
+            {% for k, v in algorithm_data.items %}
+              {% if k == algo %}{{ v.type }}{% endif %}
+            {% endfor %}
+          {% endwith %}
+        </div>
+        {% endif %}
+      </label>
+      {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary">Compare Selected →</button>
+  </form>
+</div>
+
+{% if comparison %}
+<!-- Chart -->
+<div class="grid-2 mb-3" style="align-items:start;">
+  <div class="card">
+    <div class="card-header"><span class="card-icon">📈</span><span class="card-title">Performance Radar</span></div>
+    <canvas id="radarChart" height="280"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-icon">📉</span><span class="card-title">Score Comparison</span></div>
+    <canvas id="barChart" height="280"></canvas>
+  </div>
+</div>
+
+<!-- Comparison Table -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-icon">🔬</span>
+    <span class="card-title">Detailed Comparison</span>
+    <div class="compare-header" style="margin-left:auto;">
+      {% for name in comparison.names %}
+        <span class="algo-chip">{{ name }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Property</th>
+          {% for name in comparison.names %}<th>{{ name }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in comparison.table_rows %}
+        <tr>
+          <td class="field-label">{{ row.label }}</td>
+          {% for cell in row.values %}
+          <td class="text-sm {% if '✓' in cell.value %}yes-val{% elif '✗' in cell.value %}no-val{% endif %}">
+            {{ cell.value }}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+        <!-- Quantum row highlight -->
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if comparison %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const chartData = {{ comparison.chart_data|safe }};
+const labels = chartData.labels;
+const datasets = chartData.datasets;
+const colors = chartData.colors;
+
+// Radar Chart
+const radarCtx = document.getElementById('radarChart').getContext('2d');
+new Chart(radarCtx, {
+  type: 'radar',
+  data: {
+    labels: labels,
+    datasets: datasets.map((ds, i) => ({
+      label: ds.label,
+      data: ds.data,
+      borderColor: colors[i],
+      backgroundColor: colors[i] + '22',
+      borderWidth: 2,
+      pointBackgroundColor: colors[i],
+    }))
+  },
+  options: {
+    responsive: true,
+    scales: {
+      r: {
+        min: 0, max: 100,
+        ticks: { color: '#64748b', stepSize: 25, font: { family: 'JetBrains Mono', size: 11 } },
+        grid: { color: '#1e2a40' },
+        pointLabels: { color: '#e2e8f0', font: { family: 'Syne', size: 12, weight: '600' } },
+        angleLines: { color: '#1e2a40' },
+      }
+    },
+    plugins: {
+      legend: { labels: { color: '#e2e8f0', font: { family: 'Syne', size: 12 } } }
+    }
+  }
+});
+
+// Bar Chart
+const barCtx = document.getElementById('barChart').getContext('2d');
+new Chart(barCtx, {
+  type: 'bar',
+  data: {
+    labels: datasets.map(d => d.label),
+    datasets: labels.map((label, i) => ({
+      label: label,
+      data: datasets.map(d => d.data[i]),
+      backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b'][i] + 'cc',
+      borderRadius: 6,
+    }))
+  },
+  options: {
+    responsive: true,
+    scales: {
+      x: { ticks: { color: '#e2e8f0', font: { family: 'Syne' } }, grid: { color: '#1e2a40' } },
+      y: { min: 0, max: 100, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 11 } }, grid: { color: '#1e2a40' } }
+    },
+    plugins: {
+      legend: { labels: { color: '#e2e8f0', font: { family: 'Syne', size: 12 } } }
+    }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}

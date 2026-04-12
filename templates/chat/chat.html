@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block title %}AI Chat – CryptoKey Research{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">🤖 AI Research Assistant</h1>
+  <p class="page-subtitle">Ask anything about cryptographic key generation, algorithms, and AI in security</p>
+</div>
+
+<div class="chat-layout">
+
+  <!-- Sidebar -->
+  <div class="chat-sidebar">
+    <a href="{% url 'chat_new' %}" class="btn btn-primary" style="justify-content:center;">+ New Session</a>
+
+    {% for session in sessions %}
+    <a href="{% url 'chat_session' session.pk %}"
+       class="session-item {% if current_session and current_session.pk == session.pk %}active{% endif %}">
+      <div class="session-title">{{ session.title }}</div>
+      <div class="session-date">{{ session.updated_at|date:"m-d H:i" }}</div>
+    </a>
+    {% empty %}
+    <p class="text-muted text-sm" style="text-align:center;padding:1rem;">No sessions yet</p>
+    {% endfor %}
+  </div>
+
+  <!-- Chat Main -->
+  <div class="chat-main">
+    <div class="chat-messages" id="chat-messages">
+      {% if not current_session %}
+        <div class="empty-chat">
+          <div class="empty-chat-icon">🔐</div>
+          <h3>Start a research session</h3>
+          <p class="text-muted text-sm">Click "New Session" to begin chatting with the AI assistant about cryptography and key analysis.</p>
+        </div>
+      {% elif not messages %}
+        <div class="empty-chat">
+          <div class="empty-chat-icon">💬</div>
+          <h3>New session started</h3>
+          <p class="text-muted text-sm">Ask me anything about cryptographic algorithms, key generators, entropy analysis, or post-quantum cryptography.</p>
+          <div class="tag-list" style="justify-content:center;margin-top:1rem;">
+            <span class="tag" onclick="fillPrompt('What is Shannon entropy in key analysis?')" style="cursor:pointer;">Shannon entropy?</span>
+            <span class="tag" onclick="fillPrompt('Compare RSA vs ECC security')" style="cursor:pointer;">RSA vs ECC?</span>
+            <span class="tag" onclick="fillPrompt('What are post-quantum algorithms?')" style="cursor:pointer;">Post-quantum?</span>
+            <span class="tag" onclick="fillPrompt('How does AES key expansion work?')" style="cursor:pointer;">AES key expansion?</span>
+          </div>
+        </div>
+      {% else %}
+        {% for msg in messages %}
+        <div class="message message-{{ msg.role }}">
+          <div class="message-role">{{ msg.role }}</div>
+          <div class="message-bubble">{{ msg.content }}</div>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    {% if current_session %}
+    <div class="chat-input-row">
+      <textarea id="chat-input" placeholder="Ask about cryptographic algorithms, key analysis, entropy…" rows="1"
+        onkeydown="handleKey(event)"></textarea>
+      <button class="btn btn-primary" onclick="sendMessage()" id="send-btn">Send</button>
+      <a href="{% url 'chat_delete' current_session.pk %}"
+         onclick="return confirm('Delete this session?')"
+         class="btn btn-danger btn-sm" style="white-space:nowrap;">Delete</a>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if current_session %}
+<script>
+const SESSION_ID = {{ current_session.pk }};
+const SEND_URL = "{% url 'chat_send' current_session.pk %}";
+const CSRF = "{{ csrf_token }}";
+
+const messagesEl = document.getElementById('chat-messages');
+const inputEl    = document.getElementById('chat-input');
+const sendBtn    = document.getElementById('send-btn');
+
+// Scroll to bottom on load
+messagesEl.scrollTop = messagesEl.scrollHeight;
+
+function fillPrompt(text) {
+  inputEl.value = text;
+  inputEl.focus();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function appendMessage(role, content) {
+  // Remove empty state if present
+  const empty = messagesEl.querySelector('.empty-chat');
+  if (empty) empty.remove();
+
+  const wrap = document.createElement('div');
+  wrap.className = `message message-${role}`;
+  wrap.innerHTML = `
+    <div class="message-role">${role}</div>
+    <div class="message-bubble">${escapeHtml(content)}</div>
+  `;
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function appendTyping() {
+  const el = document.createElement('div');
+  el.className = 'message message-assistant';
+  el.id = 'typing-indicator';
+  el.innerHTML = `
+    <div class="message-role">assistant</div>
+    <div class="typing-indicator">
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+    </div>`;
+  messagesEl.appendChild(el);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  inputEl.value = '';
+  sendBtn.disabled = true;
+
+  appendMessage('user', text);
+  appendTyping();
+
+  try {
+    const res = await fetch(SEND_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': CSRF,
+      },
+      body: JSON.stringify({ message: text }),
+    });
+    const data = await res.json();
+    removeTyping();
+    if (data.reply) {
+      appendMessage('assistant', data.reply);
+    } else {
+      appendMessage('assistant', '⚠️ No response received.');
+    }
+  } catch (err) {
+    removeTyping();
+    appendMessage('assistant', '⚠️ Network error. Please try again.');
+  } finally {
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+}
+</script>
+{% endif %}
+{% endblock %}
