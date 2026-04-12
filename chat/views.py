@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 from .models import ChatSession, ChatMessage
 from .services import chat_with_openrouter, build_message_history
 import json
 
 
+@login_required
 def chat_view(request, session_id=None):
     sessions = ChatSession.objects.all()
 
@@ -21,11 +23,13 @@ def chat_view(request, session_id=None):
     })
 
 
+@login_required
 def new_session(request):
     session = ChatSession.objects.create(title="New Session")
     return redirect('chat_session', session_id=session.pk)
 
 
+@login_required
 @require_POST
 def send_message(request, session_id):
     session = get_object_or_404(ChatSession, pk=session_id)
@@ -39,24 +43,21 @@ def send_message(request, session_id):
     if not user_content:
         return JsonResponse({'error': 'Empty message'}, status=400)
 
-    # Save user message
     ChatMessage.objects.create(session=session, role='user', content=user_content)
 
-    # Auto-title session from first message
     if session.messages.count() == 1:
         session.title = user_content[:60]
         session.save()
 
-    # Build history and call OpenRouter
     history = build_message_history(session)
     reply = chat_with_openrouter(history)
 
-    # Save assistant reply
     ChatMessage.objects.create(session=session, role='assistant', content=reply)
 
     return JsonResponse({'reply': reply})
 
 
+@login_required
 def delete_session(request, session_id):
     session = get_object_or_404(ChatSession, pk=session_id)
     session.delete()

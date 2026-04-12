@@ -1,8 +1,10 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from .services import get_algorithm_names, compare_algorithms, ALGORITHM_DATA
 from .models import ComparisonRecord
 
 
+@login_required
 def compare_view(request):
     all_algorithms = get_algorithm_names()
     comparison = None
@@ -18,7 +20,6 @@ def compare_view(request):
                 'algorithm_data': ALGORITHM_DATA,
             })
         comparison = compare_algorithms(selected)
-        # Save to DB
         ComparisonRecord.objects.create(
             algorithms=selected,
             comparison_data=comparison.get('table_rows', []),

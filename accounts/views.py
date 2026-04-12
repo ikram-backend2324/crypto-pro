@@ -10,7 +10,6 @@ def register_view(request):
 
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
-        email = request.POST.get('email', '').strip()
         password1 = request.POST.get('password1', '')
         password2 = request.POST.get('password2', '')
 
@@ -23,7 +22,7 @@ def register_view(request):
         elif User.objects.filter(username=username).exists():
             messages.error(request, 'Username already taken.')
         else:
-            user = User.objects.create_user(username=username, email=email, password=password1)
+            user = User.objects.create_user(username=username, password=password1)
             login(request, user)
             messages.success(request, f'Welcome, {username}! Your account has been created.')
             return redirect('home')

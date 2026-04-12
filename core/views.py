@@ -1,9 +1,11 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from analyzer.models import AnalysisResult
 from comparator.models import ComparisonRecord
 from chat.models import ChatSession
 
 
+@login_required
 def home(request):
     context = {
         'total_analyses': AnalysisResult.objects.count(),

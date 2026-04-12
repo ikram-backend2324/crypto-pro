@@ -1,11 +1,12 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 from .models import AnalysisResult
 from .services import analyze_key
 
 ALGORITHM_CHOICES = ['RSA', 'AES', 'ECC', 'ChaCha20', '3DES', 'OTHER']
 
 
+@login_required
 def analyze_view(request):
     result = None
     error = None
@@ -39,6 +40,7 @@ def analyze_view(request):
     })
 
 
+@login_required
 def analysis_detail(request, pk):
     obj = get_object_or_404(AnalysisResult, pk=pk)
     return render(request, 'analyzer/detail.html', {'result': obj})
