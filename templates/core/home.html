@@ -1,25 +1,25 @@
 {% extends 'base.html' %}
-{% block title %}Dashboard – CryptoKey Research{% endblock %}
+{% block title %}{{ T.nav_dashboard }} – CryptoKey Research{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1 class="page-title">⬡ Research Dashboard</h1>
-  <p class="page-subtitle">Methods for evaluating cryptographic key generators, analysis and algorithms in artificial intelligence</p>
+  <h1 class="page-title">{{ T.home_title }}</h1>
+  <p class="page-subtitle">{{ T.home_subtitle }}</p>
 </div>
 
 <!-- Stats -->
 <div class="grid-3 mb-2">
   <div class="card stat-box">
     <div class="stat-number">{{ total_analyses }}</div>
-    <div class="stat-label">Keys Analyzed</div>
+    <div class="stat-label">{{ T.stat_keys_analyzed }}</div>
   </div>
   <div class="card stat-box">
     <div class="stat-number">{{ total_comparisons }}</div>
-    <div class="stat-label">Comparisons Run</div>
+    <div class="stat-label">{{ T.stat_comparisons }}</div>
   </div>
   <div class="card stat-box">
     <div class="stat-number">{{ total_chats }}</div>
-    <div class="stat-label">AI Chat Sessions</div>
+    <div class="stat-label">{{ T.stat_chat_sessions }}</div>
   </div>
 </div>
 
@@ -29,28 +29,28 @@
   <div class="card">
     <div class="card-header">
       <span class="card-icon">🔍</span>
-      <span class="card-title">Key Analyzer</span>
+      <span class="card-title">{{ T.card_key_analyzer }}</span>
     </div>
-    <p class="text-muted text-sm mb-2">Evaluate entropy, strength, and patterns in cryptographic keys. Supports RSA, AES, ECC, ChaCha20, and more.</p>
-    <a href="{% url 'analyze' %}" class="btn btn-primary w-full" style="justify-content:center">Analyze a Key →</a>
+    <p class="text-muted text-sm mb-2">{{ T.card_key_analyzer_desc }}</p>
+    <a href="{% url 'analyze' %}" class="btn btn-primary w-full" style="justify-content:center">{{ T.card_key_analyzer_btn }}</a>
   </div>
 
   <div class="card">
     <div class="card-header">
       <span class="card-icon">📊</span>
-      <span class="card-title">Algorithm Comparator</span>
+      <span class="card-title">{{ T.card_comparator }}</span>
     </div>
-    <p class="text-muted text-sm mb-2">Side-by-side comparison of cryptographic algorithms across security, speed, and memory efficiency metrics.</p>
-    <a href="{% url 'compare' %}" class="btn btn-primary w-full" style="justify-content:center">Compare Algorithms →</a>
+    <p class="text-muted text-sm mb-2">{{ T.card_comparator_desc }}</p>
+    <a href="{% url 'compare' %}" class="btn btn-primary w-full" style="justify-content:center">{{ T.card_comparator_btn }}</a>
   </div>
 
   <div class="card">
     <div class="card-header">
       <span class="card-icon">🤖</span>
-      <span class="card-title">AI Research Assistant</span>
+      <span class="card-title">{{ T.card_ai_chat }}</span>
     </div>
-    <p class="text-muted text-sm mb-2">Chat with an AI expert on cryptographic methods, key generation, post-quantum algorithms, and security analysis.</p>
-    <a href="{% url 'chat' %}" class="btn btn-primary w-full" style="justify-content:center">Start Chat →</a>
+    <p class="text-muted text-sm mb-2">{{ T.card_ai_chat_desc }}</p>
+    <a href="{% url 'chat' %}" class="btn btn-primary w-full" style="justify-content:center">{{ T.card_ai_chat_btn }}</a>
   </div>
 
 </div>
@@ -60,17 +60,17 @@
 <div class="card mt-3">
   <div class="card-header">
     <span class="card-icon">🕒</span>
-    <span class="card-title">Recent Analyses</span>
+    <span class="card-title">{{ T.recent_analyses }}</span>
   </div>
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th>Algorithm</th>
-          <th>Key Length</th>
-          <th>Entropy</th>
-          <th>Strength</th>
-          <th>Date</th>
+          <th>{{ T.col_algorithm }}</th>
+          <th>{{ T.col_key_length }}</th>
+          <th>{{ T.col_entropy }}</th>
+          <th>{{ T.col_strength }}</th>
+          <th>{{ T.col_date }}</th>
           <th></th>
         </tr>
       </thead>
@@ -78,7 +78,7 @@
         {% for item in recent_analyses %}
         <tr>
           <td><span class="badge badge-info">{{ item.algorithm }}</span></td>
-          <td class="font-mono text-sm">{{ item.key_length }} bits</td>
+          <td class="font-mono text-sm">{{ item.key_length }} {{ T.bits }}</td>
           <td class="font-mono text-sm">{{ item.entropy_score }}</td>
           <td>
             <span class="badge badge-{% if item.strength_label == 'Strong' %}strong{% elif item.strength_label == 'Moderate' %}moderate{% elif item.strength_label == 'Weak' %}weak{% else %}very-weak{% endif %}">
@@ -86,7 +86,7 @@
             </span>
           </td>
           <td class="text-muted text-sm font-mono">{{ item.created_at|date:"Y-m-d H:i" }}</td>
-          <td><a href="{% url 'analysis_detail' item.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+          <td><a href="{% url 'analysis_detail' item.pk %}" class="btn btn-secondary btn-sm">{{ T.col_view }}</a></td>
         </tr>
         {% endfor %}
       </tbody>

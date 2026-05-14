@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Algorithm Comparator – CryptoKey Research{% endblock %}
+{% block title %}{{ T.nav_comparator }} – CryptoKey Research{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -10,12 +10,12 @@
 
 {% block content %}
 <div class="page-header">
-  <h1 class="page-title">📊 Algorithm Comparator</h1>
-  <p class="page-subtitle">Compare cryptographic algorithms across security, speed, and memory efficiency</p>
+  <h1 class="page-title">{{ T.comparator_title }}</h1>
+  <p class="page-subtitle">{{ T.comparator_subtitle }}</p>
 </div>
 
 <div class="card mb-3">
-  <div class="card-header"><span class="card-icon">⚙️</span><span class="card-title">Select Algorithms</span></div>
+  <div class="card-header"><span class="card-icon">⚙️</span><span class="card-title">{{ T.select_algorithms }}</span></div>
   {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
   <form method="post">
     {% csrf_token %}
@@ -37,28 +37,26 @@
       </label>
       {% endfor %}
     </div>
-    <button type="submit" class="btn btn-primary">Compare Selected →</button>
+    <button type="submit" class="btn btn-primary">{{ T.btn_compare }}</button>
   </form>
 </div>
 
 {% if comparison %}
-<!-- Chart -->
 <div class="grid-2 mb-3" style="align-items:start;">
   <div class="card">
-    <div class="card-header"><span class="card-icon">📈</span><span class="card-title">Performance Radar</span></div>
+    <div class="card-header"><span class="card-icon">📈</span><span class="card-title">{{ T.chart_radar }}</span></div>
     <canvas id="radarChart" height="280"></canvas>
   </div>
   <div class="card">
-    <div class="card-header"><span class="card-icon">📉</span><span class="card-title">Score Comparison</span></div>
+    <div class="card-header"><span class="card-icon">📉</span><span class="card-title">{{ T.chart_bar }}</span></div>
     <canvas id="barChart" height="280"></canvas>
   </div>
 </div>
 
-<!-- Comparison Table -->
 <div class="card">
   <div class="card-header">
     <span class="card-icon">🔬</span>
-    <span class="card-title">Detailed Comparison</span>
+    <span class="card-title">{{ T.detailed_comparison }}</span>
     <div class="compare-header" style="margin-left:auto;">
       {% for name in comparison.names %}
         <span class="algo-chip">{{ name }}</span>
@@ -69,7 +67,7 @@
     <table class="compare-table">
       <thead>
         <tr>
-          <th>Property</th>
+          <th>{{ T.col_property }}</th>
           {% for name in comparison.names %}<th>{{ name }}</th>{% endfor %}
         </tr>
       </thead>
@@ -84,7 +82,6 @@
           {% endfor %}
         </tr>
         {% endfor %}
-        <!-- Quantum row highlight -->
       </tbody>
     </table>
   </div>
@@ -102,7 +99,6 @@ const labels = chartData.labels;
 const datasets = chartData.datasets;
 const colors = chartData.colors;
 
-// Radar Chart
 const radarCtx = document.getElementById('radarChart').getContext('2d');
 new Chart(radarCtx, {
   type: 'radar',
@@ -134,7 +130,6 @@ new Chart(radarCtx, {
   }
 });
 
-// Bar Chart
 const barCtx = document.getElementById('barChart').getContext('2d');
 new Chart(barCtx, {
   type: 'bar',

@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
-{% block title %}AI Chat – CryptoKey Research{% endblock %}
+{% block title %}{{ T.nav_ai_chat }} – CryptoKey Research{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1 class="page-title">🤖 AI Research Assistant</h1>
-  <p class="page-subtitle">Ask anything about cryptographic key generation, algorithms, and AI in security</p>
+  <h1 class="page-title">{{ T.chat_title }}</h1>
+  <p class="page-subtitle">{{ T.chat_subtitle }}</p>
 </div>
 
 <div class="chat-layout">
 
   <!-- Sidebar -->
   <div class="chat-sidebar">
-    <a href="{% url 'chat_new' %}" class="btn btn-primary" style="justify-content:center;">+ New Session</a>
+    <a href="{% url 'chat_new' %}" class="btn btn-primary" style="justify-content:center;">{{ T.btn_new_session }}</a>
 
     {% for session in sessions %}
     <a href="{% url 'chat_session' session.pk %}"
@@ -20,7 +20,7 @@
       <div class="session-date">{{ session.updated_at|date:"m-d H:i" }}</div>
     </a>
     {% empty %}
-    <p class="text-muted text-sm" style="text-align:center;padding:1rem;">No sessions yet</p>
+    <p class="text-muted text-sm" style="text-align:center;padding:1rem;">{{ T.no_sessions }}</p>
     {% endfor %}
   </div>
 
@@ -29,20 +29,20 @@
     <div class="chat-messages" id="chat-messages">
       {% if not current_session %}
         <div class="empty-chat">
-          <div class="empty-chat-icon">🔐</div>
-          <h3>Start a research session</h3>
-          <p class="text-muted text-sm">Click "New Session" to begin chatting with the AI assistant about cryptography and key analysis.</p>
+          <div class="empty-chat-icon">{{ T.empty_chat_icon }}</div>
+          <h3>{{ T.empty_chat_title }}</h3>
+          <p class="text-muted text-sm">{{ T.empty_chat_desc }}</p>
         </div>
       {% elif not messages %}
         <div class="empty-chat">
-          <div class="empty-chat-icon">💬</div>
-          <h3>New session started</h3>
-          <p class="text-muted text-sm">Ask me anything about cryptographic algorithms, key generators, entropy analysis, or post-quantum cryptography.</p>
+          <div class="empty-chat-icon">{{ T.new_session_icon }}</div>
+          <h3>{{ T.new_session_title }}</h3>
+          <p class="text-muted text-sm">{{ T.new_session_desc }}</p>
           <div class="tag-list" style="justify-content:center;margin-top:1rem;">
-            <span class="tag" onclick="fillPrompt('What is Shannon entropy in key analysis?')" style="cursor:pointer;">Shannon entropy?</span>
-            <span class="tag" onclick="fillPrompt('Compare RSA vs ECC security')" style="cursor:pointer;">RSA vs ECC?</span>
-            <span class="tag" onclick="fillPrompt('What are post-quantum algorithms?')" style="cursor:pointer;">Post-quantum?</span>
-            <span class="tag" onclick="fillPrompt('How does AES key expansion work?')" style="cursor:pointer;">AES key expansion?</span>
+            <span class="tag" onclick="fillPrompt('{{ T.prompt_shannon }}')" style="cursor:pointer;">{{ T.tag_shannon }}</span>
+            <span class="tag" onclick="fillPrompt('{{ T.prompt_rsa_ecc }}')" style="cursor:pointer;">{{ T.tag_rsa_ecc }}</span>
+            <span class="tag" onclick="fillPrompt('{{ T.prompt_postquantum }}')" style="cursor:pointer;">{{ T.tag_postquantum }}</span>
+            <span class="tag" onclick="fillPrompt('{{ T.prompt_aes }}')" style="cursor:pointer;">{{ T.tag_aes }}</span>
           </div>
         </div>
       {% else %}
@@ -57,12 +57,12 @@
 
     {% if current_session %}
     <div class="chat-input-row">
-      <textarea id="chat-input" placeholder="Ask about cryptographic algorithms, key analysis, entropy…" rows="1"
+      <textarea id="chat-input" placeholder="{{ T.chat_placeholder }}" rows="1"
         onkeydown="handleKey(event)"></textarea>
-      <button class="btn btn-primary" onclick="sendMessage()" id="send-btn">Send</button>
+      <button class="btn btn-primary" onclick="sendMessage()" id="send-btn">{{ T.btn_send }}</button>
       <a href="{% url 'chat_delete' current_session.pk %}"
-         onclick="return confirm('Delete this session?')"
-         class="btn btn-danger btn-sm" style="white-space:nowrap;">Delete</a>
+         onclick="return confirm('{{ T.confirm_delete }}')"
+         class="btn btn-danger btn-sm" style="white-space:nowrap;">{{ T.btn_delete }}</a>
     </div>
     {% endif %}
   </div>
@@ -76,12 +76,13 @@
 const SESSION_ID = {{ current_session.pk }};
 const SEND_URL = "{% url 'chat_send' current_session.pk %}";
 const CSRF = "{{ csrf_token }}";
+const MSG_NO_RESPONSE = "{{ T.msg_no_response }}";
+const MSG_NETWORK_ERROR = "{{ T.msg_network_error }}";
 
 const messagesEl = document.getElementById('chat-messages');
 const inputEl    = document.getElementById('chat-input');
 const sendBtn    = document.getElementById('send-btn');
 
-// Scroll to bottom on load
 messagesEl.scrollTop = messagesEl.scrollHeight;
 
 function fillPrompt(text) {
@@ -97,7 +98,6 @@ function handleKey(e) {
 }
 
 function appendMessage(role, content) {
-  // Remove empty state if present
   const empty = messagesEl.querySelector('.empty-chat');
   if (empty) empty.remove();
 
@@ -159,11 +159,11 @@ async function sendMessage() {
     if (data.reply) {
       appendMessage('assistant', data.reply);
     } else {
-      appendMessage('assistant', '⚠️ No response received.');
+      appendMessage('assistant', MSG_NO_RESPONSE);
     }
   } catch (err) {
     removeTyping();
-    appendMessage('assistant', '⚠️ Network error. Please try again.');
+    appendMessage('assistant', MSG_NETWORK_ERROR);
   } finally {
     sendBtn.disabled = false;
     inputEl.focus();

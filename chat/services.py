@@ -1,7 +1,7 @@
 import requests
 from django.conf import settings
 
-SYSTEM_PROMPT = """You are a specialized AI research assistant for cryptographic key generation, 
+SYSTEM_PROMPT_TEMPLATE = """You are a specialized AI research assistant for cryptographic key generation, 
 analysis, and algorithms. You have deep knowledge of:
 - Symmetric and asymmetric cryptography (AES, RSA, ECC, ChaCha20, etc.)
 - Key generation methods and best practices
@@ -11,10 +11,23 @@ analysis, and algorithms. You have deep knowledge of:
 - NIST standards, RFCs, and security recommendations
 
 Answer questions clearly and technically. When relevant, mention practical implementation 
-details in Python. Keep answers focused on cryptography and AI-in-security topics."""
+details in Python. Keep answers focused on cryptography and AI-in-security topics.
+
+{lang_instruction}"""
+
+LANG_INSTRUCTIONS = {
+    'en': "Always respond in English.",
+    'ru': "Всегда отвечай на русском языке.",
+    'uz': "Har doim o'zbek tilida javob bering.",
+}
 
 
-def chat_with_openrouter(messages: list) -> str:
+def get_system_prompt(lang: str = 'en') -> str:
+    lang_instruction = LANG_INSTRUCTIONS.get(lang, LANG_INSTRUCTIONS['en'])
+    return SYSTEM_PROMPT_TEMPLATE.format(lang_instruction=lang_instruction)
+
+
+def chat_with_openrouter(messages: list, lang: str = 'en') -> str:
     """
     Send a list of {role, content} messages to OpenRouter.
     Returns the assistant reply as a string.
@@ -25,9 +38,11 @@ def chat_with_openrouter(messages: list) -> str:
     if not api_key:
         return "⚠️ OpenRouter API key is not configured. Please add OPENROUTER_API_KEY to your .env file."
 
+    system_prompt = get_system_prompt(lang)
+
     payload = {
         "model": model,
-        "messages": [{"role": "system", "content": SYSTEM_PROMPT}] + messages,
+        "messages": [{"role": "system", "content": system_prompt}] + messages,
         "max_tokens": 1024,
         "temperature": 0.7,
     }

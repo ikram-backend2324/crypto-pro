@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
-{% block title %}Key Analyzer – CryptoKey Research{% endblock %}
+{% block title %}{{ T.nav_analyzer }} – CryptoKey Research{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1 class="page-title">🔍 Key Analyzer</h1>
-  <p class="page-subtitle">Evaluate entropy, strength score, and patterns in a cryptographic key</p>
+  <h1 class="page-title">{{ T.analyzer_title }}</h1>
+  <p class="page-subtitle">{{ T.analyzer_subtitle }}</p>
 </div>
 
 <div class="grid-2" style="align-items: start;">
@@ -13,7 +13,7 @@
   <div class="card">
     <div class="card-header">
       <span class="card-icon">⌨️</span>
-      <span class="card-title">Input Key</span>
+      <span class="card-title">{{ T.input_key_title }}</span>
     </div>
     {% if error %}
       <div class="alert alert-error">{{ error }}</div>
@@ -21,7 +21,7 @@
     <form method="post">
       {% csrf_token %}
       <div class="form-group">
-        <label for="algorithm">Algorithm</label>
+        <label for="algorithm">{{ T.label_algorithm }}</label>
         <select name="algorithm" id="algorithm">
           {% for algo in algorithms %}
             <option value="{{ algo }}">{{ algo }}</option>
@@ -29,12 +29,12 @@
         </select>
       </div>
       <div class="form-group">
-        <label for="key_input">Key or Seed (hex or text)</label>
+        <label for="key_input">{{ T.label_key_input }}</label>
         <textarea name="key_input" id="key_input" rows="6"
-          placeholder="Paste your key here, e.g.&#10;a3f1c9e27b84d605...&#10;or raw text"></textarea>
-        <p class="text-muted text-sm mt-1">Accepts hex strings, base64, or raw text. Spaces and colons are ignored in hex detection.</p>
+          placeholder="{{ T.key_input_placeholder }}"></textarea>
+        <p class="text-muted text-sm mt-1">{{ T.key_input_hint }}</p>
       </div>
-      <button type="submit" class="btn btn-primary w-full" style="justify-content:center">Analyze Key</button>
+      <button type="submit" class="btn btn-primary w-full" style="justify-content:center">{{ T.btn_analyze }}</button>
     </form>
   </div>
 
@@ -44,16 +44,15 @@
     <div class="card strength-{% if result.strength_label == 'Strong' %}strong{% elif result.strength_label == 'Moderate' %}moderate{% elif result.strength_label == 'Weak' %}weak{% else %}very-weak{% endif %}">
       <div class="card-header">
         <span class="card-icon">📈</span>
-        <span class="card-title">Analysis Result</span>
+        <span class="card-title">{{ T.result_title }}</span>
         <span class="badge badge-{% if result.strength_label == 'Strong' %}strong{% elif result.strength_label == 'Moderate' %}moderate{% elif result.strength_label == 'Weak' %}weak{% else %}very-weak{% endif %}" style="margin-left:auto">
           {{ result.strength_label }}
         </span>
       </div>
 
-      <!-- Strength Meter -->
       <div class="mb-2">
         <div class="flex justify-between items-center mb-1">
-          <span class="text-sm text-muted">Strength Score</span>
+          <span class="text-sm text-muted">{{ T.strength_score }}</span>
           <span class="font-mono font-bold text-accent">{{ result.strength_score }}/100</span>
         </div>
         <div class="strength-bar-wrap">
@@ -61,42 +60,39 @@
         </div>
       </div>
 
-      <!-- Metrics -->
       <div class="metric-row">
-        <span class="metric-label">Algorithm</span>
+        <span class="metric-label">{{ T.metric_algorithm }}</span>
         <span class="metric-value"><span class="badge badge-info">{{ result.algorithm }}</span></span>
       </div>
       <div class="metric-row">
-        <span class="metric-label">Key Length</span>
-        <span class="metric-value font-mono">{{ result.key_length }} bits</span>
+        <span class="metric-label">{{ T.metric_key_length }}</span>
+        <span class="metric-value font-mono">{{ result.key_length }} {{ T.bits }}</span>
       </div>
       <div class="metric-row">
-        <span class="metric-label">Shannon Entropy</span>
-        <span class="metric-value font-mono">{{ result.entropy_score }} bits/char</span>
+        <span class="metric-label">{{ T.metric_shannon }}</span>
+        <span class="metric-value font-mono">{{ result.entropy_score }} {{ T.bits_char }}</span>
         <div class="metric-bar-wrap">
           <div class="metric-bar" style="width: {% widthratio result.entropy_score 8 100 %}%"></div>
         </div>
       </div>
       <div class="metric-row">
-        <span class="metric-label">Analyzed</span>
+        <span class="metric-label">{{ T.metric_analyzed }}</span>
         <span class="metric-value font-mono text-sm text-muted">{{ result.created_at|date:"Y-m-d H:i:s" }}</span>
       </div>
 
-      <!-- Patterns -->
       {% if result.patterns_found %}
       <div class="mt-2">
-        <p class="text-sm text-muted mb-1">⚠️ Patterns Detected</p>
+        <p class="text-sm text-muted mb-1">{{ T.patterns_detected }}</p>
         {% for p in result.patterns_found %}
           <div class="alert alert-error" style="padding: 8px 12px; margin-bottom: 4px;">{{ p }}</div>
         {% endfor %}
       </div>
       {% else %}
-      <div class="alert alert-success mt-2">✓ No obvious patterns detected</div>
+      <div class="alert alert-success mt-2">{{ T.no_patterns }}</div>
       {% endif %}
 
-      <!-- Recommendations -->
       <div class="mt-2">
-        <p class="text-sm text-muted mb-1">💡 Recommendations</p>
+        <p class="text-sm text-muted mb-1">{{ T.recommendations }}</p>
         {% for rec in result.recommendations %}
           <div class="metric-row">
             <span class="text-sm">{{ rec }}</span>
@@ -105,7 +101,7 @@
       </div>
 
       <div class="mt-2">
-        <a href="{% url 'analysis_detail' result.pk %}" class="btn btn-secondary btn-sm">View Full Report</a>
+        <a href="{% url 'analysis_detail' result.pk %}" class="btn btn-secondary btn-sm">{{ T.btn_full_report }}</a>
       </div>
     </div>
   </div>
@@ -113,7 +109,7 @@
   <div class="card" style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
     <div>
       <div style="font-size:3rem;margin-bottom:1rem;">🔐</div>
-      <p class="text-muted">Enter a key on the left to see the analysis results here.</p>
+      <p class="text-muted">{{ T.placeholder_analyzer }}</p>
     </div>
   </div>
   {% endif %}
@@ -125,22 +121,29 @@
 <div class="card mt-3">
   <div class="card-header">
     <span class="card-icon">🕒</span>
-    <span class="card-title">Analysis History</span>
+    <span class="card-title">{{ T.analysis_history }}</span>
   </div>
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Algorithm</th><th>Length</th><th>Entropy</th><th>Strength</th><th>Date</th><th></th></tr>
+        <tr>
+          <th>{{ T.col_algorithm }}</th>
+          <th>{{ T.col_key_length }}</th>
+          <th>{{ T.col_entropy }}</th>
+          <th>{{ T.col_strength }}</th>
+          <th>{{ T.col_date }}</th>
+          <th></th>
+        </tr>
       </thead>
       <tbody>
         {% for item in history %}
         <tr>
           <td><span class="badge badge-info">{{ item.algorithm }}</span></td>
-          <td class="font-mono text-sm">{{ item.key_length }} bits</td>
+          <td class="font-mono text-sm">{{ item.key_length }} {{ T.bits }}</td>
           <td class="font-mono text-sm">{{ item.entropy_score }}</td>
           <td><span class="badge badge-{% if item.strength_label == 'Strong' %}strong{% elif item.strength_label == 'Moderate' %}moderate{% elif item.strength_label == 'Weak' %}weak{% else %}very-weak{% endif %}">{{ item.strength_label }}</span></td>
           <td class="text-muted text-sm font-mono">{{ item.created_at|date:"m-d H:i" }}</td>
-          <td><a href="{% url 'analysis_detail' item.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+          <td><a href="{% url 'analysis_detail' item.pk %}" class="btn btn-secondary btn-sm">{{ T.col_view }}</a></td>
         </tr>
         {% endfor %}
       </tbody>

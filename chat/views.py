@@ -49,8 +49,11 @@ def send_message(request, session_id):
         session.title = user_content[:60]
         session.save()
 
+    # Get user's language from session
+    lang = request.session.get('lang', 'en')
+
     history = build_message_history(session)
-    reply = chat_with_openrouter(history)
+    reply = chat_with_openrouter(history, lang=lang)
 
     ChatMessage.objects.create(session=session, role='assistant', content=reply)
 

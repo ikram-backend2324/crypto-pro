@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,35 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
   {% load static %}
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <style>
+    .lang-switcher {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg2, #0f1923);
+      border: 1px solid var(--border, #1e2a40);
+      border-radius: 8px;
+      padding: 3px 4px;
+      margin-left: 4px;
+    }
+    .lang-btn {
+      font-family: var(--mono, 'JetBrains Mono', monospace);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 3px 9px;
+      border-radius: 5px;
+      color: var(--text-muted, #64748b);
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .lang-btn:hover { color: var(--text, #e2e8f0); background: var(--bg3, #1e2a40); }
+    .lang-btn.active { background: var(--accent, #3b82f6); color: #fff; }
+  </style>
   {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -18,18 +47,25 @@
     <span class="brand-text">CryptoKey<span class="brand-accent">Research</span></span>
   </a>
   <ul class="nav-links">
-    <li><a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Dashboard</a></li>
-    <li><a href="{% url 'analyze' %}" class="nav-link {% if 'analyze' in request.resolver_match.url_name %}active{% endif %}">Analyzer</a></li>
-    <li><a href="{% url 'compare' %}" class="nav-link {% if 'compare' in request.resolver_match.url_name %}active{% endif %}">Comparator</a></li>
-    <li><a href="{% url 'chat' %}" class="nav-link {% if 'chat' in request.resolver_match.url_name %}active{% endif %}">AI Chat</a></li>
-    <li><a href="/admin/" class="nav-link nav-admin">Admin</a></li>
+    <li><a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">{{ T.nav_dashboard }}</a></li>
+    <li><a href="{% url 'analyze' %}" class="nav-link {% if 'analyze' in request.resolver_match.url_name %}active{% endif %}">{{ T.nav_analyzer }}</a></li>
+    <li><a href="{% url 'compare' %}" class="nav-link {% if 'compare' in request.resolver_match.url_name %}active{% endif %}">{{ T.nav_comparator }}</a></li>
+    <li><a href="{% url 'chat' %}" class="nav-link {% if 'chat' in request.resolver_match.url_name %}active{% endif %}">{{ T.nav_ai_chat }}</a></li>
+    <li><a href="/admin/" class="nav-link nav-admin">{{ T.nav_admin }}</a></li>
     {% if user.is_authenticated %}
-      <li><a href="{% url 'logout' %}" class="nav-link nav-logout">Logout</a></li>
+      <li><a href="{% url 'logout' %}" class="nav-link nav-logout">{{ T.nav_logout }}</a></li>
       <li><span class="nav-link nav-user">{{ user.username }}</span></li>
     {% else %}
-      <li><a href="{% url 'login' %}" class="nav-link">Login</a></li>
-      <li><a href="{% url 'register' %}" class="nav-link nav-user">Register</a></li>
+      <li><a href="{% url 'login' %}" class="nav-link">{{ T.nav_login }}</a></li>
+      <li><a href="{% url 'register' %}" class="nav-link nav-user">{{ T.nav_register }}</a></li>
     {% endif %}
+    <li>
+      <div class="lang-switcher">
+        <a href="{% url 'set_language' %}?lang=en&next={{ request.get_full_path }}" class="lang-btn {% if lang == 'en' %}active{% endif %}">EN</a>
+        <a href="{% url 'set_language' %}?lang=ru&next={{ request.get_full_path }}" class="lang-btn {% if lang == 'ru' %}active{% endif %}">RU</a>
+        <a href="{% url 'set_language' %}?lang=uz&next={{ request.get_full_path }}" class="lang-btn {% if lang == 'uz' %}active{% endif %}">UZ</a>
+      </div>
+    </li>
   </ul>
 </nav>
 
@@ -45,9 +81,9 @@
 </main>
 
 <footer class="footer">
-  <span class="mono">CryptoKey Research Tool</span>
+  <span class="mono">{{ T.footer_tool_name }}</span>
   <span class="footer-sep">//</span>
-  <span>Methods for evaluating cryptographic key generators &amp; AI algorithms</span>
+  <span>{{ T.footer_desc }}</span>
 </footer>
 
 {% block extra_js %}{% endblock %}
