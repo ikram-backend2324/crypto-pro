@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load analyzer_extras %}
+{% block title %}{{ T.detail_report_title }} #{{ result.pk }} – CryptoKey Research{% endblock %}
+
+{% block content %}
+<div class="page-header flex items-center gap-3 reveal" style="flex-wrap:wrap;">
+  <a href="{% url 'analyze' %}" class="btn btn-secondary btn-sm">← {{ T.detail_back }}</a>
+  <h1 class="page-title" style="margin:0;">{{ T.detail_report_title }} #{{ result.pk }}</h1>
+  <span class="badge badge-{{ result.strength_label|strength_class }}">
+    {{ result.strength_label|trans_strength:T }}
+  </span>
+</div>
+
+<div class="grid-2" style="align-items:start;">
+  <div class="card reveal">
+    <div class="card-header"><span class="card-icon">📊</span><span class="card-title">{{ T.detail_metrics }}</span></div>
+
+    <div class="mb-2">
+      <div class="flex justify-between items-center mb-1">
+        <span class="text-sm text-muted">{{ T.strength_score }}</span>
+        <span class="font-mono font-bold text-accent">{{ result.strength_score }}/100</span>
+      </div>
+      <div class="strength-bar-wrap">
+        <div class="strength-bar" style="width: {{ result.strength_score }}%"></div>
+      </div>
+    </div>
+
+    <div class="metric-row"><span class="metric-label">{{ T.metric_algorithm }}</span><span class="metric-value"><span class="badge badge-info">{{ result.algorithm }}</span></span></div>
+    <div class="metric-row"><span class="metric-label">{{ T.metric_key_length }}</span><span class="metric-value font-mono">{{ result.key_length }} {{ T.bits }}</span></div>
+    <div class="metric-row"><span class="metric-label">{{ T.metric_shannon }}</span><span class="metric-value font-mono">{{ result.entropy_score }} {{ T.bits_char }}</span></div>
+    <div class="metric-row"><span class="metric-label">{{ T.detail_patterns_found }}</span><span class="metric-value font-mono {% if result.patterns_found %}text-red{% else %}text-green{% endif %}">{{ result.patterns_found|length }}</span></div>
+    <div class="metric-row"><span class="metric-label">{{ T.metric_analyzed }}</span><span class="metric-value font-mono text-sm text-muted">{{ result.created_at|date:"Y-m-d H:i:s" }}</span></div>
+  </div>
+
+  <div>
+    {% if result.patterns_found %}
+    <div class="card mb-2 reveal">
+      <div class="card-header"><span class="card-icon">⚠</span><span class="card-title">{{ T.patterns_detected }}</span></div>
+      {% for p in result.patterns_found %}
+        <div class="alert alert-error" style="margin-bottom:6px;">{{ p|trans_code:T }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card reveal">
+      <div class="card-header"><span class="card-icon">💡</span><span class="card-title">{{ T.recommendations }}</span></div>
+      {% for rec in result.recommendations %}
+        <div class="metric-row"><span class="text-sm">{{ forloop.counter }}. {{ rec|trans_code:T }}</span></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- 3D Strength Fortress -->
+<div class="grid-2 mt-3" style="align-items:start;">
+  <div class="card reveal">
+    <div class="card-header"><span class="card-icon">🛡</span><span class="card-title">{{ T.viz_strength_3d }}</span></div>
+    <div id="detail-fortress" class="viz-3d"></div>
+    <p class="text-sm text-muted mt-1">{{ T.viz_strength_caption }}</p>
+  </div>
+
+  {% if result.char_frequencies %}
+  <div class="card reveal">
+    <div class="card-header"><span class="card-icon">📊</span><span class="card-title">{{ T.viz_entropy_3d }}</span></div>
+    <div id="detail-spectrum" class="viz-3d"></div>
+    <p class="text-sm text-muted mt-1">{{ T.viz_entropy_caption }}</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- 3D Algorithm simulation -->
+<div class="card mt-3 reveal">
+  <div class="card-header"><span class="card-icon">🧬</span><span class="card-title">{{ T.detail_simulation }}</span></div>
+  <div id="algo-simulation" class="viz-3d viz-3d-tall"></div>
+  <p class="text-sm text-muted mt-1">{{ T.detail_simulation_caption }}</p>
+</div>
+
+<div class="card mt-3 reveal">
+  <div class="card-header"><span class="card-icon">🔑</span><span class="card-title">{{ T.detail_key_input }}</span></div>
+  <pre class="font-mono text-sm text-muted" style="white-space:pre-wrap;word-break:break-all;background:rgba(13,18,38,0.6);padding:1rem;border-radius:var(--radius);border:1px solid var(--border);">{{ result.key_input|slice:":200" }}{% if result.key_input|length > 200 %}...{% endif %}</pre>
+</div>
+
+<script>
+  window.__detailResult = {{ result_json|safe }};
+</script>
+{% endblock %}

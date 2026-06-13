@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load analyzer_extras %}
+{% block title %}{{ T.nav_analyzer }} – CryptoKey Research{% endblock %}
+
+{% block content %}
+<div class="page-header reveal">
+  <span class="page-eyebrow"><span class="dot"></span>{{ T.analyzer_title }}</span>
+  <h1 class="page-title">{{ T.analyzer_title }}</h1>
+  <p class="page-subtitle">{{ T.analyzer_subtitle }}</p>
+</div>
+
+<div class="grid-2" style="align-items: start;">
+
+  <!-- Input Form -->
+  <div class="card reveal">
+    <div class="card-header">
+      <span class="card-icon">⌨</span>
+      <span class="card-title">{{ T.input_key_title }}</span>
+    </div>
+    {% if error %}
+      <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="algorithm">{{ T.label_algorithm }}</label>
+        <select name="algorithm" id="algorithm">
+          {% for algo in algorithms %}
+            <option value="{{ algo }}">{{ algo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="key_input">{{ T.label_key_input }}</label>
+        <textarea name="key_input" id="key_input" rows="6"
+          placeholder="{{ T.key_input_placeholder }}"></textarea>
+        <p class="text-muted text-sm mt-1">{{ T.key_input_hint }}</p>
+      </div>
+      <button type="submit" class="btn btn-primary w-full" style="justify-content:center">{{ T.btn_analyze }}</button>
+    </form>
+  </div>
+
+  <!-- Result -->
+  {% if result %}
+  <div>
+    <div class="card reveal strength-{{ result.strength_label|strength_class }}">
+      <div class="card-header">
+        <span class="card-icon">📈</span>
+        <span class="card-title">{{ T.result_title }}</span>
+        <span class="badge badge-{{ result.strength_label|strength_class }}" style="margin-left:auto">
+          {{ result.strength_label|trans_strength:T }}
+        </span>
+      </div>
+
+      <div class="mb-2">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-sm text-muted">{{ T.strength_score }}</span>
+          <span class="font-mono font-bold text-accent">{{ result.strength_score }}/100</span>
+        </div>
+        <div class="strength-bar-wrap">
+          <div class="strength-bar" style="width: {{ result.strength_score }}%"></div>
+        </div>
+      </div>
+
+      <div class="metric-row">
+        <span class="metric-label">{{ T.metric_algorithm }}</span>
+        <span class="metric-value"><span class="badge badge-info">{{ result.algorithm }}</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">{{ T.metric_key_length }}</span>
+        <span class="metric-value font-mono">{{ result.key_length }} {{ T.bits }}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">{{ T.metric_shannon }}</span>
+        <span class="metric-value font-mono">{{ result.entropy_score }} {{ T.bits_char }}</span>
+        <div class="metric-bar-wrap">
+          <div class="metric-bar" style="width: {% widthratio result.entropy_score 8 100 %}%"></div>
+        </div>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">{{ T.metric_analyzed }}</span>
+        <span class="metric-value font-mono text-sm text-muted">{{ result.created_at|date:"Y-m-d H:i:s" }}</span>
+      </div>
+
+      {% if result.patterns_found %}
+      <div class="mt-2">
+        <p class="text-sm text-muted mb-1">{{ T.patterns_detected }}</p>
+        {% for p in result.patterns_found %}
+          <div class="alert alert-error" style="padding: 8px 12px; margin-bottom: 4px;">{{ p|trans_code:T }}</div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="alert alert-success mt-2">{{ T.no_patterns }}</div>
+      {% endif %}
+
+      <div class="mt-2">
+        <p class="text-sm text-muted mb-1">{{ T.recommendations }}</p>
+        {% for rec in result.recommendations %}
+          <div class="metric-row">
+            <span class="text-sm">{{ rec|trans_code:T }}</span>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="mt-2">
+        <a href="{% url 'analysis_detail' result.pk %}" class="btn btn-secondary btn-sm">{{ T.btn_full_report }}</a>
+      </div>
+    </div>
+
+    <!-- 3D visualizations -->
+    <div class="card reveal mt-3">
+      <div class="card-header">
+        <span class="card-icon">🛡</span>
+        <span class="card-title">{{ T.viz_strength_3d }}</span>
+      </div>
+      <div id="strength-fortress" class="viz-3d"></div>
+      <p class="text-sm text-muted mt-1">{{ T.viz_strength_caption }}</p>
+    </div>
+
+    {% if result.char_frequencies %}
+    <div class="card reveal mt-3">
+      <div class="card-header">
+        <span class="card-icon">📊</span>
+        <span class="card-title">{{ T.viz_entropy_3d }}</span>
+      </div>
+      <div id="entropy-spectrum" class="viz-3d"></div>
+      <p class="text-sm text-muted mt-1">{{ T.viz_entropy_caption }}</p>
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="card reveal" style="display:flex;align-items:center;justify-content:center;min-height:300px;text-align:center;">
+    <div>
+      <div style="font-size:3rem;margin-bottom:1rem;">🔐</div>
+      <p class="text-muted">{{ T.placeholder_analyzer }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- History -->
+{% if history %}
+<div class="card mt-3 reveal">
+  <div class="card-header">
+    <span class="card-icon">🕒</span>
+    <span class="card-title">{{ T.analysis_history }}</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ T.col_algorithm }}</th>
+          <th>{{ T.col_key_length }}</th>
+          <th>{{ T.col_entropy }}</th>
+          <th>{{ T.col_strength }}</th>
+          <th>{{ T.col_date }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in history %}
+        <tr>
+          <td><span class="badge badge-info">{{ item.algorithm }}</span></td>
+          <td class="font-mono text-sm">{{ item.key_length }} {{ T.bits }}</td>
+          <td class="font-mono text-sm">{{ item.entropy_score }}</td>
+          <td><span class="badge badge-{{ item.strength_label|strength_class }}">{{ item.strength_label|trans_strength:T }}</span></td>
+          <td class="text-muted text-sm font-mono">{{ item.created_at|date:"m-d H:i" }}</td>
+          <td><a href="{% url 'analysis_detail' item.pk %}" class="btn btn-secondary btn-sm">{{ T.col_view }}</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if result %}
+<script>
+  window.__analyzerResult = {{ result_json|safe }};
+</script>
+{% endif %}
+{% endblock %}

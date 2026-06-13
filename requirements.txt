@@ -1,0 +1,7 @@
+Django==4.2.16
+python-dotenv==1.0.1
+requests==2.32.3
+cryptography==42.0.8
+pycryptodome==3.20.0
+gunicorn
+whitenoise

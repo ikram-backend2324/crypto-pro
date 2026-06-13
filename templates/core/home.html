@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load analyzer_extras %}
+{% block title %}{{ T.nav_dashboard }} – CryptoKey Research{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero reveal">
+  <div class="hero-content">
+    <span class="page-eyebrow"><span class="dot"></span>{{ T.home_hero_tag }}</span>
+    <h1 class="page-title hero-title">{{ T.home_title }}</h1>
+    <p class="page-subtitle">{{ T.home_subtitle }}</p>
+    <div class="hero-cta">
+      <a href="{% url 'analyze' %}" class="btn btn-primary">{{ T.card_key_analyzer_btn }} →</a>
+      <a href="{% url 'compare' %}" class="btn btn-secondary">{{ T.card_comparator_btn }}</a>
+    </div>
+  </div>
+  <div class="hero-3d" id="hero-canvas"></div>
+</section>
+
+<!-- Stats -->
+<div class="grid-3 mb-2 mt-3">
+  <div class="card stat-box reveal">
+    <div class="stat-number counter" data-target="{{ total_analyses }}">0</div>
+    <div class="stat-label">{{ T.stat_keys_analyzed }}</div>
+  </div>
+  <div class="card stat-box reveal">
+    <div class="stat-number counter" data-target="{{ total_comparisons }}">0</div>
+    <div class="stat-label">{{ T.stat_comparisons }}</div>
+  </div>
+  <div class="card stat-box reveal">
+    <div class="stat-number counter" data-target="{{ total_chats }}">0</div>
+    <div class="stat-label">{{ T.stat_chat_sessions }}</div>
+  </div>
+</div>
+
+<!-- Feature Cards -->
+<div class="grid-3 mt-3 mb-3">
+
+  <div class="card reveal">
+    <div class="card-header">
+      <span class="card-icon">🔍</span>
+      <span class="card-title">{{ T.card_key_analyzer }}</span>
+    </div>
+    <p class="text-muted text-sm mb-2">{{ T.card_key_analyzer_desc }}</p>
+    <a href="{% url 'analyze' %}" class="btn btn-primary w-full" style="justify-content:center">{{ T.card_key_analyzer_btn }}</a>
+  </div>
+
+  <div class="card reveal">
+    <div class="card-header">
+      <span class="card-icon">📊</span>
+      <span class="card-title">{{ T.card_comparator }}</span>
+    </div>
+    <p class="text-muted text-sm mb-2">{{ T.card_comparator_desc }}</p>
+    <a href="{% url 'compare' %}" class="btn btn-primary w-full" style="justify-content:center">{{ T.card_comparator_btn }}</a>
+  </div>
+
+  <div class="card reveal">
+    <div class="card-header">
+      <span class="card-icon">🤖</span>
+      <span class="card-title">{{ T.card_ai_chat }}</span>
+    </div>
+    <p class="text-muted text-sm mb-2">{{ T.card_ai_chat_desc }}</p>
+    <a href="{% url 'chat' %}" class="btn btn-primary w-full" style="justify-content:center">{{ T.card_ai_chat_btn }}</a>
+  </div>
+
+</div>
+
+<!-- Recent Analyses -->
+{% if recent_analyses %}
+<div class="card mt-3 reveal">
+  <div class="card-header">
+    <span class="card-icon">🕒</span>
+    <span class="card-title">{{ T.recent_analyses }}</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ T.col_algorithm }}</th>
+          <th>{{ T.col_key_length }}</th>
+          <th>{{ T.col_entropy }}</th>
+          <th>{{ T.col_strength }}</th>
+          <th>{{ T.col_date }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in recent_analyses %}
+        <tr>
+          <td><span class="badge badge-info">{{ item.algorithm }}</span></td>
+          <td class="font-mono text-sm">{{ item.key_length }} {{ T.bits }}</td>
+          <td class="font-mono text-sm">{{ item.entropy_score }}</td>
+          <td>
+            <span class="badge badge-{{ item.strength_label|strength_class }}">
+              {{ item.strength_label|trans_strength:T }}
+            </span>
+          </td>
+          <td class="text-muted text-sm font-mono">{{ item.created_at|date:"Y-m-d H:i" }}</td>
+          <td><a href="{% url 'analysis_detail' item.pk %}" class="btn btn-secondary btn-sm">{{ T.col_view }}</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
